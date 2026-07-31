@@ -1,0 +1,12 @@
+/target
+**/*.rs.bk
+Cargo.lock
+
+# SECURITY: never commit keys or secrets
+*.pem
+*.key
+*.bin
+aes_key*
+iv_salt*
+*secret*
+*private*
