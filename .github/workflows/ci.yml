@@ -27,3 +27,21 @@ jobs:
             # Compile firmware for RP2350 target
             - name: Build
               run: cargo build --verbose
+    
+    clippy:
+        name: Clippy (SAST linter)
+        runs-on: ubunutu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Install Rust
+              uses: dtolnay/rust-toolchain@stable
+              with:
+                # RP2350 ARM M33 target
+                targets: thumbv8m.main-none-eabihf
+                components: clippy
+
+            - name: Run Clippy
+              # -D warnings turn into errors, gating the pipeline to fail on a finding
+              run: cargo clippy --all-targets -- -D warnings
