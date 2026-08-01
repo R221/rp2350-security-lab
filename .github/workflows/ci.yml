@@ -19,7 +19,7 @@ jobs:
 
             # Install Rust toolchain
             - name: Install Rust
-              uses: dtolnay/rust-toolchains@table
+              uses: dtolnay/rust-toolchain@stable
               with:
                 # RP2350 ARM M33 target
                 targets: thumbv8m.main-none-eabihf
