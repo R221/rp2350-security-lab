@@ -102,5 +102,5 @@ jobs:
                 scan-ref: '.'
                 scanners: vuln,secret,misconfig,license
                 # Gate 3: Fail build on high/crit findings
-                severity: HIGH, CRITICAL
+                severity: "HIGH,CRITICAL"
                 exit-code: 1
