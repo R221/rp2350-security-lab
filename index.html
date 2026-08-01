@@ -1,0 +1,379 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>rp2350-security-lab · DevSecOps Pipeline</title>
+<style>
+  :root {
+    --bg: #0a0e14;
+    --panel: #111722;
+    --panel-2: #0d1420;
+    --line: #1e2a3a;
+    --text: #c6d3e2;
+    --dim: #6b7d94;
+    --green: #3fb950;
+    --red: #f85149;
+    --amber: #d29922;
+    --cyan: #39c5cf;
+    --accent: #58a6ff;
+    --mono: 'SF Mono', 'Cascadia Code', 'JetBrains Mono', 'Fira Code', Consolas, monospace;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--mono);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    background-image:
+      radial-gradient(circle at 15% 10%, rgba(57,197,207,0.04) 0%, transparent 40%),
+      radial-gradient(circle at 85% 90%, rgba(88,166,255,0.04) 0%, transparent 40%);
+    min-height: 100vh;
+  }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 48px 24px 80px; }
+
+  /* Header */
+  header { border-bottom: 1px solid var(--line); padding-bottom: 28px; margin-bottom: 36px; }
+  .eyebrow { color: var(--cyan); font-size: 12px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 14px; }
+  h1 { font-size: 30px; font-weight: 600; letter-spacing: -0.5px; line-height: 1.2; margin-bottom: 12px; }
+  h1 .chip { color: var(--accent); }
+  .sub { color: var(--dim); font-size: 15px; max-width: 620px; }
+  .meta { margin-top: 18px; display: flex; gap: 20px; flex-wrap: wrap; font-size: 12px; color: var(--dim); }
+  .meta a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
+  .meta a:hover { color: var(--cyan); border-color: var(--cyan); }
+
+  /* Disclosure banner — honesty */
+  .disclosure {
+    background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--amber);
+    padding: 12px 16px; border-radius: 6px; font-size: 12.5px; color: var(--dim); margin-bottom: 32px;
+  }
+  .disclosure strong { color: var(--amber); }
+  .disclosure a { color: var(--accent); text-decoration: none; }
+  .disclosure a:hover { text-decoration: underline; }
+
+  /* Controls */
+  .controls {
+    display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 18px 20px; margin-bottom: 8px;
+  }
+  .btn {
+    background: var(--green); color: #04140a; border: none; font-family: var(--mono);
+    font-weight: 600; font-size: 14px; padding: 11px 22px; border-radius: 6px; cursor: pointer;
+    letter-spacing: 0.3px; transition: transform .08s ease, box-shadow .2s ease, opacity .2s;
+  }
+  .btn:hover:not(:disabled) { transform: translateY(-1px); box-shadow: 0 4px 16px rgba(63,185,80,0.25); }
+  .btn:active:not(:disabled) { transform: translateY(0); }
+  .btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .btn.reset { background: transparent; color: var(--dim); border: 1px solid var(--line); }
+  .btn.reset:hover:not(:disabled) { color: var(--text); box-shadow: none; }
+
+  .toggle { display: flex; align-items: center; gap: 10px; margin-left: auto; font-size: 13px; color: var(--dim); }
+  .toggle label { cursor: pointer; user-select: none; }
+  .switch { position: relative; width: 42px; height: 22px; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .slider {
+    position: absolute; inset: 0; background: var(--line); border-radius: 22px;
+    cursor: pointer; transition: background .2s;
+  }
+  .slider::before {
+    content: ''; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px;
+    background: var(--dim); border-radius: 50%; transition: transform .2s, background .2s;
+  }
+  input:checked + .slider { background: rgba(248,81,73,0.3); }
+  input:checked + .slider::before { transform: translateX(20px); background: var(--red); }
+
+  .toggle-note { font-size: 11px; color: var(--dim); margin: 6px 2px 30px; }
+  .toggle-note.armed { color: var(--red); }
+
+  /* Pipeline */
+  .pipeline { display: flex; flex-direction: column; gap: 0; }
+  .stage {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 0; overflow: hidden; transition: border-color .3s, box-shadow .3s;
+    position: relative;
+  }
+  .stage + .stage { margin-top: 10px; }
+  .stage::after {
+    content: ''; position: absolute; left: 31px; bottom: -10px; width: 2px; height: 10px;
+    background: var(--line); z-index: 0;
+  }
+  .stage:last-child::after { display: none; }
+
+  .stage-head {
+    display: flex; align-items: center; gap: 14px; padding: 16px 18px; cursor: default;
+  }
+  .status-dot {
+    width: 26px; height: 26px; border-radius: 50%; flex-shrink: 0;
+    display: flex; align-items: center; justify-content: center;
+    border: 2px solid var(--line); background: var(--panel-2);
+    font-size: 13px; font-weight: 700; transition: all .3s;
+  }
+  .stage-title { font-weight: 600; font-size: 15px; }
+  .stage-tag {
+    font-size: 10px; letter-spacing: 1px; text-transform: uppercase;
+    color: var(--dim); border: 1px solid var(--line); padding: 2px 7px; border-radius: 4px;
+  }
+  .stage-desc { color: var(--dim); font-size: 12.5px; margin-left: auto; text-align: right; max-width: 300px; }
+  .stage-time { font-size: 11px; color: var(--dim); font-variant-numeric: tabular-nums; margin-left: 14px; }
+
+  /* Stage states */
+  .stage.running { border-color: var(--amber); box-shadow: 0 0 0 1px rgba(210,153,34,0.3); }
+  .stage.running .status-dot { border-color: var(--amber); color: var(--amber); }
+  .stage.pass { border-color: rgba(63,185,80,0.4); }
+  .stage.pass .status-dot { border-color: var(--green); background: rgba(63,185,80,0.12); color: var(--green); }
+  .stage.fail { border-color: rgba(248,81,73,0.5); box-shadow: 0 0 0 1px rgba(248,81,73,0.3); }
+  .stage.fail .status-dot { border-color: var(--red); background: rgba(248,81,73,0.12); color: var(--red); }
+  .stage.skip { opacity: 0.45; }
+  .stage.skip .status-dot { color: var(--dim); }
+
+  .spinner {
+    width: 13px; height: 13px; border: 2px solid rgba(210,153,34,0.3);
+    border-top-color: var(--amber); border-radius: 50%; animation: spin .7s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* Log output */
+  .stage-log {
+    max-height: 0; overflow: hidden; transition: max-height .35s ease;
+    border-top: 0 solid var(--line); background: var(--panel-2);
+  }
+  .stage-log.open { max-height: 340px; border-top: 1px solid var(--line); overflow-y: auto; }
+  .log-inner { padding: 14px 18px 16px 58px; font-size: 12px; line-height: 1.7; white-space: pre-wrap; }
+  .log-inner .c-dim { color: var(--dim); }
+  .log-inner .c-green { color: var(--green); }
+  .log-inner .c-red { color: var(--red); }
+  .log-inner .c-amber { color: var(--amber); }
+  .log-inner .c-cyan { color: var(--cyan); }
+
+  /* Result banner */
+  .result {
+    margin-top: 24px; padding: 18px 22px; border-radius: 8px; font-size: 14px;
+    display: none; align-items: center; gap: 14px;
+  }
+  .result.show { display: flex; }
+  .result.ok { background: rgba(63,185,80,0.1); border: 1px solid rgba(63,185,80,0.4); color: var(--green); }
+  .result.bad { background: rgba(248,81,73,0.1); border: 1px solid rgba(248,81,73,0.4); color: var(--red); }
+  .result .big { font-size: 20px; }
+  .result .detail { color: var(--text); font-size: 13px; margin-top: 2px; }
+  .result .detail .c-dim { color: var(--dim); }
+
+  /* Legend */
+  .legend { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 28px; }
+  .legend h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--cyan); margin-bottom: 18px; }
+  .legend-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px 28px; }
+  .legend-item { font-size: 12.5px; }
+  .legend-item b { color: var(--text); display: block; margin-bottom: 2px; }
+  .legend-item span { color: var(--dim); }
+
+  footer { margin-top: 48px; padding-top: 24px; border-top: 1px solid var(--line); font-size: 12px; color: var(--dim); }
+  footer a { color: var(--accent); text-decoration: none; }
+  footer a:hover { color: var(--cyan); }
+
+  @media (max-width: 620px) {
+    .stage-desc { display: none; }
+    .legend-grid { grid-template-columns: 1fr; }
+    .toggle { margin-left: 0; width: 100%; justify-content: space-between; }
+    h1 { font-size: 24px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    * { animation-duration: 0.01ms !important; transition-duration: 0.01ms !important; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="eyebrow">RP2350 · Embedded Security</div>
+    <h1>DevSecOps pipeline for <span class="chip">rp2350-security-lab</span></h1>
+    <p class="sub">A CI/CD pipeline that gates every commit through static analysis, SBOM generation, and dependency vulnerability scanning — for firmware built in Rust for the Raspberry Pi Pico 2.</p>
+    <div class="meta">
+      <span>SAST · SBOM · SCA · secret scanning</span>
+      <a href="https://github.com/r221/rp2350-security-lab" target="_blank" rel="noopener">Source →</a>
+      <a href="https://github.com/r221/rp2350-security-lab/actions" target="_blank" rel="noopener">Real CI runs →</a>
+    </div>
+  </header>
+
+  <div class="disclosure">
+    <strong>This is a simulation.</strong> The buttons below animate a representative run of the real pipeline so you can see how the security gates behave — including how they <em>fail</em> the build when a vulnerability appears. The actual pipeline runs on GitHub Actions on every push; see the <a href="https://github.com/r221/rp2350-security-lab/actions" target="_blank" rel="noopener">real runs here</a>.
+  </div>
+
+  <div class="controls">
+    <button class="btn" id="runBtn">▶ Run pipeline</button>
+    <button class="btn reset" id="resetBtn" disabled>Reset</button>
+    <div class="toggle">
+      <label for="vulnToggle">Inject vulnerable dependency</label>
+      <div class="switch">
+        <input type="checkbox" id="vulnToggle">
+        <span class="slider"></span>
+      </div>
+    </div>
+  </div>
+  <div class="toggle-note" id="toggleNote">Toggle on to add a crate with a known CVE, then run — watch the scanners catch it and block the build.</div>
+
+  <div class="pipeline" id="pipeline"></div>
+
+  <div class="result" id="result"></div>
+
+  <div class="legend">
+    <h2>What each gate does</h2>
+    <div class="legend-grid">
+      <div class="legend-item"><b>Build</b><span>Cross-compiles the firmware for the RP2350 (thumbv8m). Baseline: does it compile in a clean environment?</span></div>
+      <div class="legend-item"><b>Clippy · SAST</b><span>Static analysis of the source itself for insecure and incorrect patterns. Findings fail the build.</span></div>
+      <div class="legend-item"><b>Syft · SBOM</b><span>Generates a standards-format software bill of materials — the inventory the vulnerability scanners check against.</span></div>
+      <div class="legend-item"><b>Grype · SCA</b><span>Scans every dependency against CVE databases. High/critical findings block the merge.</span></div>
+      <div class="legend-item"><b>Trivy · multi</b><span>Vulnerabilities, exposed secrets, and misconfigurations in one pass — defense in depth over Grype.</span></div>
+      <div class="legend-item"><b>cargo-audit · SCA</b><span>Rust-native scan against the RustSec advisory database for crate-specific advisories.</span></div>
+    </div>
+  </div>
+
+  <footer>
+    Built as a learning project · <a href="https://github.com/r221/rp2350-security-lab" target="_blank" rel="noopener">r221/rp2350-security-lab</a><br>
+    The gate philosophy: catch a vulnerability at commit time — where it costs minutes — not in a fielded device, where it costs a mission.
+  </footer>
+</div>
+
+<script>
+  const stages = [
+    { id: 'build', title: 'Build', tag: 'compile', desc: 'cargo build · target thumbv8m.main-none-eabihf',
+      log: `<span class="c-dim">$ cargo build --target thumbv8m.main-none-eabihf</span>\n   Compiling rp235x-hal v0.4.0\n   Compiling rp2350-security-lab v0.1.0\n<span class="c-green">    Finished</span> in 41.2s`,
+      time: 41 },
+    { id: 'clippy', title: 'Clippy', tag: 'SAST', desc: 'source lint · -D warnings (gate)',
+      log: `<span class="c-dim">$ cargo clippy -- -D warnings</span>\n   Checking rp2350-security-lab v0.1.0\n<span class="c-green">    Finished</span> — no lints\n<span class="c-green">✓ 0 warnings</span>`,
+      time: 12 },
+    { id: 'syft', title: 'Syft', tag: 'SBOM', desc: 'generate SPDX bill of materials',
+      log: `<span class="c-dim">$ syft . -o spdx-json</span>\n   Cataloged 47 packages (cargo)\n<span class="c-green">    Wrote</span> sbom.spdx.json`,
+      time: 6 },
+    { id: 'grype', title: 'Grype', tag: 'SCA', desc: 'CVE scan · fail-on high (gate)',
+      log: `<span class="c-dim">$ grype sbom:sbom.spdx.json --fail-on high</span>\n   Scanned 47 packages against CVE + RustSec\n<span class="c-green">    No vulnerabilities at or above: high</span>`,
+      logVuln: `<span class="c-dim">$ grype sbom:sbom.spdx.json --fail-on high</span>\n   Scanned 48 packages against CVE + RustSec\n<span class="c-red">   NAME        INSTALLED   VULNERABILITY   SEVERITY</span>\n<span class="c-red">   time        0.1.45      RUSTSEC-2020-0071  HIGH</span>\n<span class="c-red">✗ discovered vulnerabilities at or above the severity cutoff</span>`,
+      time: 9 },
+    { id: 'trivy', title: 'Trivy', tag: 'MULTI', desc: 'vuln + secret + config',
+      log: `<span class="c-dim">$ trivy fs . --scanners vuln,secret,misconfig</span>\n   vuln: 0 · secret: 0 · misconfig: 0\n<span class="c-green">    No findings at HIGH,CRITICAL</span>`,
+      logVuln: `<span class="c-dim">$ trivy fs . --scanners vuln,secret,misconfig</span>\n<span class="c-red">   time@0.1.45  CVE via RUSTSEC-2020-0071  HIGH</span>\n<span class="c-amber">   (skipped — pipeline already failed at Grype)</span>`,
+      time: 11 },
+    { id: 'audit', title: 'cargo-audit', tag: 'SCA', desc: 'RustSec advisory scan',
+      log: `<span class="c-dim">$ cargo audit</span>\n   Fetched advisory database\n   Scanning Cargo.lock for vulnerabilities\n<span class="c-green">✓ no vulnerable packages</span>`,
+      time: 5 },
+  ];
+
+  const pipelineEl = document.getElementById('pipeline');
+  const runBtn = document.getElementById('runBtn');
+  const resetBtn = document.getElementById('resetBtn');
+  const vulnToggle = document.getElementById('vulnToggle');
+  const toggleNote = document.getElementById('toggleNote');
+  const resultEl = document.getElementById('result');
+
+  function buildStages() {
+    pipelineEl.innerHTML = '';
+    stages.forEach(s => {
+      const el = document.createElement('div');
+      el.className = 'stage';
+      el.id = 'stage-' + s.id;
+      el.innerHTML = `
+        <div class="stage-head">
+          <div class="status-dot" data-dot>·</div>
+          <div class="stage-title">${s.title}</div>
+          <div class="stage-tag">${s.tag}</div>
+          <div class="stage-desc">${s.desc}</div>
+          <div class="stage-time" data-time></div>
+        </div>
+        <div class="stage-log"><div class="log-inner" data-log></div></div>`;
+      pipelineEl.appendChild(el);
+    });
+  }
+  buildStages();
+
+  const sleep = ms => new Promise(r => setTimeout(r, ms));
+  let running = false;
+
+  vulnToggle.addEventListener('change', () => {
+    if (vulnToggle.checked) {
+      toggleNote.textContent = 'Armed: a crate with RUSTSEC-2020-0071 (HIGH) will be added. Run to watch the gate block it.';
+      toggleNote.classList.add('armed');
+    } else {
+      toggleNote.textContent = 'Toggle on to add a crate with a known CVE, then run — watch the scanners catch it and block the build.';
+      toggleNote.classList.remove('armed');
+    }
+  });
+
+  async function run() {
+    if (running) return;
+    running = true;
+    runBtn.disabled = true;
+    vulnToggle.disabled = true;
+    resetBtn.disabled = true;
+    resultEl.className = 'result';
+    const vuln = vulnToggle.checked;
+    let failedAt = null;
+
+    for (let i = 0; i < stages.length; i++) {
+      const s = stages[i];
+      const el = document.getElementById('stage-' + s.id);
+      const dot = el.querySelector('[data-dot]');
+      const timeEl = el.querySelector('[data-time]');
+      const logEl = el.querySelector('[data-log]');
+      const logBox = el.querySelector('.stage-log');
+
+      // If pipeline already failed, mark remaining as skipped
+      if (failedAt !== null) {
+        el.classList.add('skip');
+        dot.textContent = '—';
+        continue;
+      }
+
+      // running
+      el.classList.add('running');
+      dot.innerHTML = '<div class="spinner"></div>';
+      await sleep(500 + Math.random() * 500);
+
+      // decide pass/fail
+      const isFailStage = vuln && (s.id === 'grype');
+      el.classList.remove('running');
+
+      if (isFailStage) {
+        el.classList.add('fail');
+        dot.textContent = '✗';
+        logEl.innerHTML = s.logVuln;
+        timeEl.textContent = s.time + 's';
+        logBox.classList.add('open');
+        failedAt = s.id;
+      } else {
+        el.classList.add('pass');
+        dot.textContent = '✓';
+        logEl.innerHTML = s.log;
+        timeEl.textContent = s.time + 's';
+        logBox.classList.add('open');
+      }
+      await sleep(350);
+    }
+
+    // result banner
+    if (failedAt) {
+      resultEl.className = 'result bad show';
+      resultEl.innerHTML = `<span class="big">✗</span><div><b>Pipeline failed — merge blocked.</b><div class="detail">Grype found <span style="color:var(--red)">RUSTSEC-2020-0071 (HIGH)</span> in a dependency. The gate stopped the build before it could merge. <span class="c-dim">This is the point: the vulnerability never reaches a shipped device.</span></div></div>`;
+    } else {
+      resultEl.className = 'result ok show';
+      resultEl.innerHTML = `<span class="big">✓</span><div><b>All gates passed — safe to merge.</b><div class="detail">Static analysis, SBOM, and dependency scans clean. <span class="c-dim">Every push runs this automatically on GitHub Actions.</span></div></div>`;
+    }
+
+    running = false;
+    resetBtn.disabled = false;
+    vulnToggle.disabled = false;
+  }
+
+  function reset() {
+    buildStages();
+    resultEl.className = 'result';
+    runBtn.disabled = false;
+    resetBtn.disabled = true;
+    vulnToggle.disabled = false;
+  }
+
+  runBtn.addEventListener('click', run);
+  resetBtn.addEventListener('click', reset);
+</script>
+</body>
+</html>
