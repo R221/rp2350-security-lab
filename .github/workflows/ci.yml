@@ -30,7 +30,7 @@ jobs:
     
     clippy:
         name: Clippy (SAST linter)
-        runs-on: ubunutu-latest
+        runs-on: ubuntu-latest
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -45,3 +45,26 @@ jobs:
             - name: Run Clippy
               # -D warnings turn into errors, gating the pipeline to fail on a finding
               run: cargo clippy --all-targets -- -D warnings
+
+    sbom:
+        name: SBOM (Syft)
+        runs-on: ubuntu-latest
+        steps:
+            -  name: Checkout
+               uses: actions/checkout@v4
+
+            # Generate SBOM of entire project directory
+            # Syft reads Cargo.lock to inventory Rust dependencies
+            - name: Genereate SBOM with Syft
+              uses: anchore/sbom-action@v0
+              with:
+                path: .
+                format: spdx-json
+                output-file: sbom.spdx.json
+            
+            # Save SBOM as downloadable artifact from the run
+            - name: Upload SBOM
+              uses: actions/upload-artifact@v4
+              with:
+                name: sbom
+                path: sbom.spdx.json
