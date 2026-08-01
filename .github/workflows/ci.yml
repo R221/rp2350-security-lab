@@ -79,7 +79,7 @@ jobs:
             # Scan project directory for vulnerabilities
             # Grype reads Cargo.lock and checks dependency against vuln DBs
             - name: Scan for vulnerabiltities with Grype
-              uses: anchore/scan-action@v4
+              uses: anchore/scan-action@v7
               with:
                 path: "."
                 # Gate 2: Fail the build if any highs or above are found 
