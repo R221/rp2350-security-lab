@@ -1,0 +1,29 @@
+name: CI
+
+# Run on every push and every pull request to main
+
+on:
+    push:
+        branches: [main]
+    pull_request:
+        branches: [main]
+
+jobs:
+    build:
+        name: Build (RP2350)
+        runs-on: ubuntu-latest
+        steps:
+            # Checkout repo code to runner
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            # Install Rust toolchain
+            - name: Install Rust
+              uses: dtolnay/rust-toolchains@table
+              with:
+                # RP2350 ARM M33 target
+                targets: thumbv8m.main-none-eabihf
+
+            # Compile firmware for RP2350 target
+            - name: Build
+              run: cargo build --verbose
