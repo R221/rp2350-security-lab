@@ -85,3 +85,22 @@ jobs:
                 # Gate 2: Fail the build if any highs or above are found 
                 fail-build: true
                 severity-cutoff: high
+
+    trivy:
+        name: Trivy (vuln + secret + config scan)
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@d23441a48e516b6c34aea4fa41551a30e30af803 # v6.1.0
+
+            # Trivy scans for vulns, secrets, and misconfigurations
+            - name: Run Trivy scan
+              # Explicit SHA for new post-supply chain attack that uses the v prefix for versions
+              uses: aquasecurity/trivy-action@57a97c7e7821a5776cebc9bb87c984fa69cba8f1 # v0.35.0
+              with:
+                scan-type: 'fs'
+                scan-ref: '.'
+                scanners: vuln,secret,misconfig,license
+                # Gate 3: Fail build on high/crit findings
+                severity: HIGH, CRITICAL
+                exit-code: 1
