@@ -44,7 +44,7 @@
   .meta a { color: var(--accent); text-decoration: none; border-bottom: 1px dotted var(--accent); }
   .meta a:hover { color: var(--cyan); border-color: var(--cyan); }
 
-  /* Disclosure banner — honesty */
+  /* Disclosure banner */
   .disclosure {
     background: var(--panel-2); border: 1px solid var(--line); border-left: 3px solid var(--amber);
     padding: 12px 16px; border-radius: 6px; font-size: 12.5px; color: var(--dim); margin-bottom: 32px;
@@ -160,6 +160,71 @@
   .result .detail { color: var(--text); font-size: 13px; margin-top: 2px; }
   .result .detail .c-dim { color: var(--dim); }
 
+  /* Firmware / tamper demo */
+  .section-head { margin-top: 56px; border-top: 1px solid var(--line); padding-top: 28px; margin-bottom: 8px; }
+  .section-head h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--cyan); margin-bottom: 10px; }
+  .section-head p { color: var(--dim); font-size: 13.5px; max-width: 640px; }
+
+  .device {
+    background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+    padding: 22px; margin-top: 20px; display: grid; grid-template-columns: 200px 1fr; gap: 24px;
+  }
+  .device-visual {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--panel-2); padding: 20px;
+    position: relative;
+  }
+  .enclosure {
+    width: 120px; height: 78px; border: 2px solid var(--line); border-radius: 6px;
+    position: relative; background: linear-gradient(160deg, #131c2a, #0c1320);
+    transition: transform .4s ease;
+  }
+  .lid {
+    position: absolute; inset: -2px; border: 2px solid var(--cyan); border-radius: 6px;
+    background: linear-gradient(160deg, rgba(57,197,207,0.12), rgba(57,197,207,0.03));
+    transform-origin: top center; transition: transform .5s ease, opacity .4s;
+  }
+  .lid.open { transform: perspective(300px) rotateX(-72deg); opacity: 0.5; }
+  .lid-label { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+    font-size: 10px; letter-spacing: 1px; color: var(--cyan); text-transform: uppercase; }
+  .led {
+    width: 14px; height: 14px; border-radius: 50%; background: var(--green);
+    box-shadow: 0 0 10px var(--green); transition: all .3s;
+  }
+  .led.off { background: #24303f; box-shadow: none; }
+  .led-label { font-size: 10px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; }
+
+  .device-state { display: flex; flex-direction: column; gap: 14px; }
+  .secret-box {
+    background: var(--panel-2); border: 1px solid var(--line); border-radius: 6px; padding: 14px 16px;
+  }
+  .secret-label { font-size: 11px; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 8px; display: flex; justify-content: space-between; }
+  .secret-label .badge { color: var(--green); }
+  .secret-label .badge.wiped { color: var(--red); }
+  .secret-bytes {
+    font-size: 12px; letter-spacing: 1px; word-break: break-all; line-height: 1.9;
+    color: var(--amber); transition: color .3s;
+  }
+  .secret-bytes.wiped { color: var(--red); opacity: 0.7; }
+  .byte { display: inline-block; transition: color .2s, transform .2s; }
+
+  .device-actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+  .status-line { font-size: 12.5px; color: var(--dim); }
+  .status-line.armed { color: var(--green); }
+  .status-line.tampered { color: var(--red); }
+
+  /* code peek */
+  .code-peek { margin-top: 18px; background: var(--panel-2); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+  .code-peek summary { padding: 12px 16px; cursor: pointer; font-size: 12.5px; color: var(--cyan); list-style: none; user-select: none; }
+  .code-peek summary::-webkit-details-marker { display: none; }
+  .code-peek summary::before { content: '▸ '; }
+  .code-peek[open] summary::before { content: '▾ '; }
+  .code-peek pre { padding: 0 16px 16px; font-size: 11.5px; line-height: 1.7; overflow-x: auto; color: var(--text); }
+  .code-peek .k { color: var(--accent); }
+  .code-peek .cm { color: var(--dim); }
+  .code-peek .fn { color: var(--cyan); }
+  .code-peek .hl { color: var(--amber); }
+
   /* Legend */
   .legend { margin-top: 44px; border-top: 1px solid var(--line); padding-top: 28px; }
   .legend h2 { font-size: 13px; letter-spacing: 2px; text-transform: uppercase; color: var(--cyan); margin-bottom: 18px; }
@@ -188,7 +253,7 @@
   <header>
     <div class="eyebrow">RP2350 · Embedded Security</div>
     <h1>DevSecOps pipeline for <span class="chip">rp2350-security-lab</span></h1>
-    <p class="sub">A CI/CD pipeline that gates every commit through static analysis, SBOM generation, and dependency vulnerability scanning — for firmware built in Rust for the Raspberry Pi Pico 2. Built by Rob James.</p>
+    <p class="sub">Tamper-response firmware in Rust for the Raspberry Pi Pico 2, wrapped in a CI/CD pipeline that scans every commit for insecure code and vulnerable dependencies before it can merge. Two sides of secure embedded work, built out end to end.</p>
     <div class="meta">
       <span>SAST · SBOM · SCA · secret scanning</span>
       <a href="https://github.com/r221/rp2350-security-lab" target="_blank" rel="noopener">Source →</a>
@@ -197,7 +262,7 @@
   </header>
 
   <div class="disclosure">
-    <strong>This is a simulation.</strong> The buttons below animate a representative run of the real pipeline so you can see how the security gates behave — including how they <em>fail</em> the build when a vulnerability appears. The actual pipeline runs on GitHub Actions on every push; see the <a href="https://github.com/r221/rp2350-security-lab/actions" target="_blank" rel="noopener">real runs here</a>.
+    <strong>This is a simulation.</strong> The buttons below animate a representative run of the real pipeline so you can see how the security gates behave, including how they <em>fail</em> the build when a vulnerability shows up. The actual pipeline runs on GitHub Actions on every push. <a href="https://github.com/r221/rp2350-security-lab/actions" target="_blank" rel="noopener">See the real runs here</a>.
   </div>
 
   <div class="controls">
@@ -211,27 +276,68 @@
       </div>
     </div>
   </div>
-  <div class="toggle-note" id="toggleNote">Toggle on to add a crate with a known CVE, then run — watch the scanners catch it and block the build.</div>
+  <div class="toggle-note" id="toggleNote">Toggle this on to add a crate with a known CVE. The scanners catch it and block the build.</div>
 
   <div class="pipeline" id="pipeline"></div>
 
   <div class="result" id="result"></div>
+
+  <div class="section-head">
+    <h2>The firmware it protects · tamper response</h2>
+    <p>The pipeline above guards the code for this: firmware that holds a secret and <strong>zeroizes it the moment the enclosure is opened</strong>. Detect, respond, zeroize. Open the lid and watch the secret get wiped.</p>
+  </div>
+
+  <div class="device">
+    <div class="device-visual">
+      <div class="enclosure">
+        <div class="lid" id="lid"><div class="lid-label">Sealed</div></div>
+      </div>
+      <div class="led" id="led"></div>
+      <div class="led-label" id="ledLabel">GPIO25 · armed</div>
+    </div>
+
+    <div class="device-state">
+      <div class="secret-box">
+        <div class="secret-label">
+          <span>Secret in memory (32 bytes)</span>
+          <span class="badge" id="secretBadge">intact</span>
+        </div>
+        <div class="secret-bytes" id="secretBytes"></div>
+      </div>
+      <div class="device-actions">
+        <button class="btn" id="tamperBtn" style="background:var(--red); color:#1a0505;">⚠ Open enclosure</button>
+        <button class="btn reset" id="rearmBtn" disabled>Re-seal &amp; reset</button>
+        <span class="status-line armed" id="deviceStatus">Armed. GPIO15 held LOW by the closed lid.</span>
+      </div>
+    </div>
+  </div>
+
+  <details class="code-peek">
+    <summary>The zeroize routine (Rust)</summary>
+    <pre><span class="cm">// A plain `secret = [0; 32]` can be optimized away by the compiler</span>
+<span class="cm">// (dead-store elimination), so the wipe silently never happens.</span>
+<span class="cm">// write_volatile forces the memory to actually be overwritten.</span>
+<span class="k">fn</span> <span class="fn">zeroize_secret</span>(secret: &<span class="k">mut</span> [u8; 32]) {
+    <span class="k">for</span> byte <span class="k">in</span> secret.iter_mut() {
+        <span class="k">unsafe</span> { <span class="hl">write_volatile</span>(byte, 0u8); }
+    }
+}</pre>
+  </details>
 
   <div class="legend">
     <h2>What each gate does</h2>
     <div class="legend-grid">
       <div class="legend-item"><b>Build</b><span>Cross-compiles the firmware for the RP2350 (thumbv8m). Baseline: does it compile in a clean environment?</span></div>
       <div class="legend-item"><b>Clippy · SAST</b><span>Static analysis of the source itself for insecure and incorrect patterns. Findings fail the build.</span></div>
-      <div class="legend-item"><b>Syft · SBOM</b><span>Generates a standards-format software bill of materials — the inventory the vulnerability scanners check against.</span></div>
+      <div class="legend-item"><b>Syft · SBOM</b><span>Generates a standards-format software bill of materials. It's the inventory the vulnerability scanners check against.</span></div>
       <div class="legend-item"><b>Grype · SCA</b><span>Scans every dependency against CVE databases. High/critical findings block the merge.</span></div>
-      <div class="legend-item"><b>Trivy · multi</b><span>Vulnerabilities, exposed secrets, and misconfigurations in one pass — defense in depth over Grype.</span></div>
+      <div class="legend-item"><b>Trivy · multi</b><span>Vulnerabilities, exposed secrets, and misconfigurations in one pass. Defense in depth over Grype.</span></div>
       <div class="legend-item"><b>cargo-audit · SCA</b><span>Rust-native scan against the RustSec advisory database for crate-specific advisories.</span></div>
     </div>
   </div>
 
   <footer>
     Built as a learning project · <a href="https://github.com/r221/rp2350-security-lab" target="_blank" rel="noopener">r221/rp2350-security-lab</a><br>
-    The gate philosophy: catch a vulnerability at commit time — where it costs minutes — not in a fielded device, where it costs a mission.
   </footer>
 </div>
 
@@ -241,7 +347,7 @@
       log: `<span class="c-dim">$ cargo build --target thumbv8m.main-none-eabihf</span>\n   Compiling rp235x-hal v0.4.0\n   Compiling rp2350-security-lab v0.1.0\n<span class="c-green">    Finished</span> in 41.2s`,
       time: 41 },
     { id: 'clippy', title: 'Clippy', tag: 'SAST', desc: 'source lint · -D warnings (gate)',
-      log: `<span class="c-dim">$ cargo clippy -- -D warnings</span>\n   Checking rp2350-security-lab v0.1.0\n<span class="c-green">    Finished</span> — no lints\n<span class="c-green">✓ 0 warnings</span>`,
+      log: `<span class="c-dim">$ cargo clippy -- -D warnings</span>\n   Checking rp2350-security-lab v0.1.0\n<span class="c-green">    Finished</span>, no lints\n<span class="c-green">✓ 0 warnings</span>`,
       time: 12 },
     { id: 'syft', title: 'Syft', tag: 'SBOM', desc: 'generate SPDX bill of materials',
       log: `<span class="c-dim">$ syft . -o spdx-json</span>\n   Cataloged 47 packages (cargo)\n<span class="c-green">    Wrote</span> sbom.spdx.json`,
@@ -252,7 +358,7 @@
       time: 9 },
     { id: 'trivy', title: 'Trivy', tag: 'MULTI', desc: 'vuln + secret + config',
       log: `<span class="c-dim">$ trivy fs . --scanners vuln,secret,misconfig</span>\n   vuln: 0 · secret: 0 · misconfig: 0\n<span class="c-green">    No findings at HIGH,CRITICAL</span>`,
-      logVuln: `<span class="c-dim">$ trivy fs . --scanners vuln,secret,misconfig</span>\n<span class="c-red">   time@0.1.45  CVE via RUSTSEC-2020-0071  HIGH</span>\n<span class="c-amber">   (skipped — pipeline already failed at Grype)</span>`,
+      logVuln: `<span class="c-dim">$ trivy fs . --scanners vuln,secret,misconfig</span>\n<span class="c-red">   time@0.1.45  CVE via RUSTSEC-2020-0071  HIGH</span>\n<span class="c-amber">   (skipped: pipeline already failed at Grype)</span>`,
       time: 11 },
     { id: 'audit', title: 'cargo-audit', tag: 'SCA', desc: 'RustSec advisory scan',
       log: `<span class="c-dim">$ cargo audit</span>\n   Fetched advisory database\n   Scanning Cargo.lock for vulnerabilities\n<span class="c-green">✓ no vulnerable packages</span>`,
@@ -291,10 +397,10 @@
 
   vulnToggle.addEventListener('change', () => {
     if (vulnToggle.checked) {
-      toggleNote.textContent = 'Armed: a crate with RUSTSEC-2020-0071 (HIGH) will be added. Run to watch the gate block it.';
+      toggleNote.textContent = 'Armed: a crate with RUSTSEC-2020-0071 (HIGH) will be added. Run it and watch the gate block the merge.';
       toggleNote.classList.add('armed');
     } else {
-      toggleNote.textContent = 'Toggle on to add a crate with a known CVE, then run — watch the scanners catch it and block the build.';
+      toggleNote.textContent = 'Toggle this on to add a crate with a known CVE, then run. The scanners catch it and block the build.';
       toggleNote.classList.remove('armed');
     }
   });
@@ -353,10 +459,10 @@
     // result banner
     if (failedAt) {
       resultEl.className = 'result bad show';
-      resultEl.innerHTML = `<span class="big">✗</span><div><b>Pipeline failed — merge blocked.</b><div class="detail">Grype found <span style="color:var(--red)">RUSTSEC-2020-0071 (HIGH)</span> in a dependency. The gate stopped the build before it could merge. <span class="c-dim">This is the point: the vulnerability never reaches a shipped device.</span></div></div>`;
+      resultEl.innerHTML = `<span class="big">✗</span><div><b>Pipeline failed. Merge blocked.</b><div class="detail">Grype found <span style="color:var(--red)">RUSTSEC-2020-0071 (HIGH)</span> in a dependency and stopped the build before it could merge. <span class="c-dim">That's the whole point: the vulnerability never reaches a shipped device.</span></div></div>`;
     } else {
       resultEl.className = 'result ok show';
-      resultEl.innerHTML = `<span class="big">✓</span><div><b>All gates passed — safe to merge.</b><div class="detail">Static analysis, SBOM, and dependency scans clean. <span class="c-dim">Every push runs this automatically on GitHub Actions.</span></div></div>`;
+      resultEl.innerHTML = `<span class="big">✓</span><div><b>All gates passed. Safe to merge.</b><div class="detail">Static analysis, SBOM, and dependency scans came back clean. <span class="c-dim">Every push runs this automatically on GitHub Actions.</span></div></div>`;
     }
 
     running = false;
@@ -374,6 +480,81 @@
 
   runBtn.addEventListener('click', run);
   resetBtn.addEventListener('click', reset);
+
+  // ---- Tamper-response device demo ----
+  const lid = document.getElementById('lid');
+  const led = document.getElementById('led');
+  const ledLabel = document.getElementById('ledLabel');
+  const secretBytesEl = document.getElementById('secretBytes');
+  const secretBadge = document.getElementById('secretBadge');
+  const tamperBtn = document.getElementById('tamperBtn');
+  const rearmBtn = document.getElementById('rearmBtn');
+  const deviceStatus = document.getElementById('deviceStatus');
+
+  // A recognizable non-zero secret (like the 0xAB pattern in the firmware)
+  const SECRET_PATTERN = Array.from({length: 32}, () => 0xAB);
+
+  function renderSecret(bytes) {
+    secretBytesEl.innerHTML = bytes
+      .map(b => `<span class="byte">${b.toString(16).padStart(2, '0')}</span>`)
+      .join(' ');
+  }
+  renderSecret(SECRET_PATTERN);
+
+  let wiping = false;
+
+  async function tamper() {
+    if (wiping) return;
+    wiping = true;
+    tamperBtn.disabled = true;
+
+    // Lid opens -> GPIO15 goes HIGH -> tamper detected
+    lid.classList.add('open');
+    lid.querySelector('.lid-label').textContent = 'Opened';
+    deviceStatus.textContent = 'Tamper detected. GPIO15 went HIGH. Zeroizing…';
+    deviceStatus.className = 'status-line tampered';
+
+    await sleep(300);
+
+    // Zeroize byte-by-byte, visibly
+    const bytes = document.querySelectorAll('#secretBytes .byte');
+    const current = [...SECRET_PATTERN];
+    for (let i = 0; i < current.length; i++) {
+      current[i] = 0x00;
+      bytes[i].textContent = '00';
+      bytes[i].style.color = 'var(--red)';
+      await sleep(28);
+    }
+
+    // Signal wiped state
+    secretBytesEl.classList.add('wiped');
+    secretBadge.textContent = 'wiped';
+    secretBadge.classList.add('wiped');
+    led.classList.add('off');
+    ledLabel.textContent = 'GPIO25 · wiped';
+    deviceStatus.textContent = 'Secret zeroized. The state is latched, so re-sealing will not restore it.';
+
+    wiping = false;
+    rearmBtn.disabled = false;
+  }
+
+  function rearm() {
+    lid.classList.remove('open');
+    lid.querySelector('.lid-label').textContent = 'Sealed';
+    renderSecret(SECRET_PATTERN);
+    secretBytesEl.classList.remove('wiped');
+    secretBadge.textContent = 'intact';
+    secretBadge.classList.remove('wiped');
+    led.classList.remove('off');
+    ledLabel.textContent = 'GPIO25 · armed';
+    deviceStatus.textContent = 'Armed. GPIO15 held LOW by the closed lid.';
+    deviceStatus.className = 'status-line armed';
+    tamperBtn.disabled = false;
+    rearmBtn.disabled = true;
+  }
+
+  tamperBtn.addEventListener('click', tamper);
+  rearmBtn.addEventListener('click', rearm);
 </script>
 </body>
 </html>
