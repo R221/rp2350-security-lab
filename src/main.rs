@@ -16,9 +16,9 @@
 use panic_halt as _;
 use rp235x_hal as hal;
 
-use core::ptr::write_volatile;
 use embedded_hal::delay::DelayNs;
 use embedded_hal::digital::{InputPin, OutputPin};
+use zeroize::Zeroize;
 
 /// Boot metadata: declares this a secure ARM image to the RP2350 boot ROM.
 #[link_section = ".start_block"]
@@ -38,21 +38,6 @@ const XTAL_FREQ_HZ: u32 = 12_000_000u32;
 
 /// Size of our stand-in secret (e.g. a 256-bit key = 32 bytes).
 const SECRET_LEN: usize = 32;
-
-/// Overwrite the secret buffer with zeros using VOLATILE writes.
-///
-/// Why volatile: a plain `for b in secret { *b = 0; }` can be optimized
-/// away by the compiler if it decides the buffer is never read again ("dead
-/// store elimination"). That would mean the wipe silently does not happen —
-/// a real cryptographic-hygiene bug. `write_volatile` forces the write to
-/// actually occur. (Production code would use the `zeroize` crate.)
-fn zeroize_secret(secret: &mut [u8; SECRET_LEN]) {
-    for byte in secret.iter_mut() {
-        unsafe {
-            write_volatile(byte as *mut u8, 0u8);
-        }
-    }
-}
 
 #[hal::entry]
 fn main() -> ! {
@@ -88,9 +73,9 @@ fn main() -> ! {
     // HIGH = switch open (lid removed)       -> tamper
     let mut tamper_pin = pins.gpio15.into_pull_up_input();
 
-    // --- Load the secret. In a real device this would be provisioned key
-    // material; here it's a recognizable pattern so you can confirm the
-    // wipe by dumping RAM before/after. ---
+    // The secret. In a real device this would be provisioned key material;
+    // here it's a recognizable pattern (0xAB) so the wipe is easy to confirm
+    // by dumping RAM before/after.
     let mut secret: [u8; SECRET_LEN] = [0xAB; SECRET_LEN];
 
     // Armed: secret intact.
@@ -100,22 +85,30 @@ fn main() -> ! {
     let mut tampered = false;
 
     loop {
-        if !tampered {
-            // is_high() -> switch open -> lid removed -> TAMPER
-            if tamper_pin.is_high().unwrap() {
-                // RESPOND: destroy the secret.
-                zeroize_secret(&mut secret);
+        if !tampered && tamper_pin.is_high().unwrap() {
+            // RESPOND: destroy the secret.
+            //
+            // Uses the `zeroize` crate rather than a plain `secret = [0; 32]`.
+            // A naive assignment can be removed by the compiler through
+            // dead-store elimination (nothing reads the secret afterward),
+            // so the wipe would silently never happen. `zeroize` performs a
+            // volatile write with a compiler fence, guaranteeing the memory
+            // is actually overwritten.
+            secret.zeroize();
 
-                // Signal the wipe.
-                led_pin.set_low().unwrap();
-                tampered = true;
+            // Educational alt to zeroize crate- write_volatile and unsafe for zeroizing
+            
+            // fn zeroize_secret(secret: &mut [u8; SECRET_LEN]) {
+            //     for byte in secret.iter_mut() {
+            //         unsafe {
+            //             write_volatile(byte as *mut u8, 0u8);
+            //         }
+            //     }
+            // }
 
-                // (Optional) prevent the compiler from deciding `secret` is
-                // now unused and eliding earlier stores: read it via a
-                // volatile black-box. Reading one byte volatile is enough to
-                // keep the buffer "observed".
-                let _observed = unsafe { core::ptr::read_volatile(&secret[0] as *const u8) };
-            }
+            // Signal the wipe and latch the state.
+            led_pin.set_low().unwrap();
+            tampered = true;
         }
 
         // Small poll interval. (An interrupt on the pin would be lower-power

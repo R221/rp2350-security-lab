@@ -13,6 +13,7 @@ panic-halt = "0.2.0"
 rp235x-hal = { version = "0.4.0", features = ["binary-info", "critical-section-impl", "rt"] }
 embedded-hal = "1.0.0"
 rp-binary-info = "0.1.0"
+zeroize = { version = "1.8", default-features = false }
 
 [profile.dev]
 opt-level = 1
