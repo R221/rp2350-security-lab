@@ -5,8 +5,8 @@
 //! detect -> respond -> zeroize.
 //!
 //! Wiring:
-//!   Tamper switch between GPIO15 and GND.
-//!   GPIO15 is input-with-pull-up: LOW = switch closed (lid on, safe),
+//!   Tamper switch between GPIO13 and GND.
+//!   GPIO13 is input-with-pull-up: LOW = switch closed (lid on, safe),
 //!   HIGH = switch open (lid removed, TAMPER).
 //!   Onboard LED (GPIO25): ON = armed/secret intact, OFF = wiped.
 
@@ -68,10 +68,10 @@ fn main() -> ! {
     // Onboard LED (GPIO25): status indicator.
     let mut led_pin = pins.gpio25.into_push_pull_output();
 
-    // Tamper switch input on GPIO15, pulled up internally.
+    // Tamper switch input on GPIO13, pulled up internally.
     // LOW  = switch closed to GND (lid on)  -> safe
     // HIGH = switch open (lid removed)       -> tamper
-    let mut tamper_pin = pins.gpio15.into_pull_up_input();
+    let mut tamper_pin = pins.gpio13.into_pull_up_input();
 
     // The secret. In a real device this would be provisioned key material;
     // here it's a recognizable pattern (0xAB) so the wipe is easy to confirm
