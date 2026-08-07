@@ -343,6 +343,48 @@
     </div>
   </div>
 
+  <!-- ============================================================= -->
+<!-- GHIDRA REVERSE-ENGINEERING SECTION                              -->
+<!-- Paste this block into index.html just BEFORE the footer /       -->
+<!-- "Built as a learning project" line. Self-contained inline       -->
+<!-- styles, so nothing else on the page is affected.                -->
+<!-- Also add these 3 image files to the repo root:                  -->
+<!--   ghidra-source.jpg, ghidra-decompiled.jpg, ghidra-listing.jpg  -->
+<!-- ============================================================= -->
+<div style="margin-top:56px; border-top:1px solid #1e2a3a; padding-top:28px;">
+  <h2 style="font-size:13px; letter-spacing:2px; text-transform:uppercase; color:#39c5cf; margin:0 0 10px;">Then I reverse-engineered my own firmware</h2>
+  <p style="color:#6b7d94; font-size:13.5px; max-width:640px; margin:0;">
+    Signing proves firmware is authentic, but it does not hide anything. So I signed my tamper firmware, opened the signed image in Ghidra, and traced it from the boot vector all the way to my own logic. The goal: confirm at the binary level that the security mitigation I wrote actually survives compilation.
+  </p>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; margin-top:20px;">
+    <div style="border:1px solid #1e2a3a; border-radius:8px; overflow:hidden; background:#0d1420;">
+      <img src="ghidra-source.jpg" alt="Rust source of the tamper loop: if not tampered and the pin is high, zeroize the secret, set the LED low, and latch the tampered flag." style="display:block; width:100%; height:auto;">
+      <div style="padding:10px 14px; font-size:12px; color:#6b7d94; border-top:1px solid #1e2a3a;"><b style="color:#c6d3e2;">What I wrote.</b> The tamper loop in Rust: read the pin, and on tamper, zeroize the 32-byte secret.</div>
+    </div>
+    <div style="border:1px solid #1e2a3a; border-radius:8px; overflow:hidden; background:#0d1420;">
+      <img src="ghidra-decompiled.jpg" alt="Ghidra decompiler showing a GPIO input register read masked with 0x8000, followed by 32 separate byte assignments of zero to the secret buffer." style="display:block; width:100%; height:auto;">
+      <div style="padding:10px 14px; font-size:12px; color:#6b7d94; border-top:1px solid #1e2a3a;"><b style="color:#c6d3e2;">What the compiler produced.</b> Ghidra's decompiler: a GPIO input read, then 32 separate writes of zero.</div>
+    </div>
+  </div>
+
+  <div style="border:1px solid #1e2a3a; border-radius:8px; overflow:hidden; background:#0d1420; margin-top:16px;">
+    <img src="ghidra-listing.jpg" alt="Ghidra assembly listing: a load from GPIO input register 0xd0000004, a test against 0x8000, a branch, then a long run of strb.w r10 store instructions writing zero to each byte of the secret." style="display:block; width:100%; height:auto;">
+    <div style="padding:10px 14px; font-size:12px; color:#6b7d94; border-top:1px solid #1e2a3a;"><b style="color:#c6d3e2;">Down to the instructions.</b> The disassembly: <b style="color:#c6d3e2;">ldr</b> reads the GPIO input register (0xd0000004), <b style="color:#c6d3e2;">tst</b> checks the tamper pin's bit, and then a wall of <b style="color:#c6d3e2;">strb.w r10</b> stores writes zero into all 32 bytes of the secret, one at a time.</div>
+  </div>
+
+  <div style="background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.35); border-left:3px solid #3fb950; border-radius:6px; padding:14px 16px; font-size:13px; color:#c6d3e2; margin:18px 0;">
+    <b style="color:#3fb950;">This is the proof the mitigation works.</b> A naive <code>secret = [0; 32]</code> can be deleted by the compiler as a dead store, so the wipe silently never happens. Because I used the <code>zeroize</code> crate, the compiler was forced to emit all 32 volatile stores. You can see every one of them in the shipped binary. The wipe is real, not optimized away. That is the difference between claiming a security control and verifying one.
+  </div>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px 28px; margin-top:22px;">
+    <div style="font-size:12.5px;"><b style="color:#c6d3e2; display:block; margin-bottom:2px;">Signed is not hidden</b><span style="color:#6b7d94;">I read the entire signed image in the clear. Signing protects integrity, not confidentiality. Encryption is the separate mechanism for that.</span></div>
+    <div style="font-size:12.5px;"><b style="color:#c6d3e2; display:block; margin-bottom:2px;">Optimization flattens structure</b><span style="color:#6b7d94;">My tidy source got inlined and rearranged. You find logic by behavior and constants, not by labels.</span></div>
+    <div style="font-size:12.5px;"><b style="color:#c6d3e2; display:block; margin-bottom:2px;">Cortex-M is Thumb-only</b><span style="color:#6b7d94;">Decoding as ARM produced garbage. Selecting the Cortex/Thumb language was the fix, a real ARM RE gotcha.</span></div>
+    <div style="font-size:12.5px;"><b style="color:#c6d3e2; display:block; margin-bottom:2px;">Verify, don't assume</b><span style="color:#6b7d94;">Seeing the 32 un-optimized stores turned "I wrote a wipe" into "the wipe provably happens on the device."</span></div>
+  </div>
+</div>
+
   <footer>
     Built as a learning project · <a href="https://github.com/r221/rp2350-security-lab" target="_blank" rel="noopener">r221/rp2350-security-lab</a><br>
   </footer>
