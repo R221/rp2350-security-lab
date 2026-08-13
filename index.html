@@ -251,12 +251,13 @@
 <body>
 <div class="wrap">
   <header>
-    <div class="eyebrow">RP2350 · Embedded Security</div>
-    <h1>DevSecOps pipeline for <span class="chip">rp2350-security-lab</span></h1>
-    <p class="sub">Tamper-response firmware in Rust for the Raspberry Pi Pico 2, wrapped in a CI/CD pipeline that scans every commit for insecure code and vulnerable dependencies before it can merge. Two sides of secure embedded work, built out end to end.</p>
+    <div class="eyebrow">Embedded security learning project and demonstration</div>
+    <h1>Tamper-response firmware and enclosure for <span class="chip">the RP2350 M33</span></h1>
+    <p class="sub">Two learning projects: Tamper-response firmware in Rust and in Zephyr RTOS with C for the Raspberry Pi Pico 2, wrapped in a CI/CD pipeline that scans every commit for insecure code and vulnerable dependencies before it can merge. Two sides of secure embedded work, built out end to end. Custom case with magnet-activated reed switch for tamper detection.</p>
     <div class="meta">
-      <span>SAST · SBOM · SCA · secret scanning</span>
-      <a href="https://github.com/r221/rp2350-security-lab" target="_blank" rel="noopener">Source →</a>
+      <span>Skills used: SAST · SBOM · SCA · secret scanning · Ghidra reverse engineering · 3D printing · soldering · Zephyr RTOS</span>
+      <a href="https://github.com/r221/rp2350-security-lab" target="_blank" rel="noopener">Bare-metal Rust →</a>
+      <a href="https://github.com/R221/RP2350-Zephyr-TamperResponse" target="_blank" rel="noopener">Zephyr RTOS w/ C →</a>
       <a href="https://github.com/r221/rp2350-security-lab/actions" target="_blank" rel="noopener">Real CI runs →</a>
     </div>
   </header>
@@ -284,7 +285,7 @@
 
   <div class="section-head">
     <h2>The firmware it protects · tamper response</h2>
-    <p>The pipeline above guards the code for this: firmware that holds a secret and <strong>zeroizes it the moment the enclosure is opened</strong>. Detect, respond, zeroize. Open the lid and watch the secret get wiped.</p>
+    <p>The pipeline above guards the code. The firmware holds a secret and <strong>zeroizes it the moment the enclosure is opened</strong>. Detect, respond, zeroize. Open the lid and watch the secret get wiped!</p>
   </div>
 
   <div class="device">
@@ -293,7 +294,7 @@
         <div class="lid" id="lid"><div class="lid-label">Sealed</div></div>
       </div>
       <div class="led" id="led"></div>
-      <div class="led-label" id="ledLabel">GPIO25 · armed</div>
+      <div class="led-label" id="ledLabel">Armed</div>
     </div>
 
     <div class="device-state">
@@ -307,7 +308,7 @@
       <div class="device-actions">
         <button class="btn" id="tamperBtn" style="background:var(--red); color:#1a0505;">⚠ Open enclosure</button>
         <button class="btn reset" id="rearmBtn" disabled>Re-seal &amp; reset</button>
-        <span class="status-line armed" id="deviceStatus">Armed. GPIO15 held LOW by the closed lid.</span>
+        <span class="status-line armed" id="deviceStatus">Armed. Pin held LOW by the closed lid.</span>
       </div>
     </div>
   </div>
@@ -390,7 +391,7 @@
 <div style="margin-top:56px; border-top:1px solid #1e2a3a; padding-top:28px;">
   <h2 style="font-size:13px; letter-spacing:2px; text-transform:uppercase; color:#39c5cf; margin:0 0 10px;">Then I rebuilt it on an RTOS, in C</h2>
   <p style="color:#6b7d94; font-size:13.5px; max-width:660px; margin:0;">
-    The first version was bare-metal Rust: one loop doing everything. To learn how production embedded systems are actually built, I rewrote the whole tamper device on Zephyr RTOS in C. Same behavior, but now as three independent threads scheduled by a real-time kernel, with the hardware described in a devicetree and a live diagnostic shell. Defense embedded work runs on C and mainstream RTOSes, so this was the higher-value way to build it.
+    The first version was bare-metal Rust with one loop doing everything. To learn how production embedded systems are actually built, I rewrote the whole tamper device on Zephyr RTOS in C. Same behavior, but now as three independent threads scheduled by a real-time kernel, with the hardware described in a devicetree and a live diagnostic shell. Defense embedded work runs on C and mainstream RTOSes, so this was the higher-value way to build it.
   </p>
 
   <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px 28px; margin-top:22px;">
