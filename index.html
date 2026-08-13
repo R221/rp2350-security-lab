@@ -378,6 +378,54 @@
   </div>
 </div>
 
+<!-- ============================================================= -->
+<!-- ZEPHYR RTOS + PHYSICAL ENCLOSURE SECTION                        -->
+<!-- Paste this block into index.html just BEFORE the footer /       -->
+<!-- "Built as a learning project" line. Self-contained inline       -->
+<!-- styles, so nothing else on the page is affected.                -->
+<!-- Also add these 4 image files to the repo root:                  -->
+<!--   zephyr-enclosure-closed.jpg, zephyr-enclosure-open.jpg,       -->
+<!--   zephyr-shell.jpg, zephyr-breadboard.jpg                       -->
+<!-- ============================================================= -->
+<div style="margin-top:56px; border-top:1px solid #1e2a3a; padding-top:28px;">
+  <h2 style="font-size:13px; letter-spacing:2px; text-transform:uppercase; color:#39c5cf; margin:0 0 10px;">Then I rebuilt it on an RTOS, in C</h2>
+  <p style="color:#6b7d94; font-size:13.5px; max-width:660px; margin:0;">
+    The first version was bare-metal Rust: one loop doing everything. To learn how production embedded systems are actually built, I rewrote the whole tamper device on Zephyr RTOS in C. Same behavior, but now as three independent threads scheduled by a real-time kernel, with the hardware described in a devicetree and a live diagnostic shell. Defense embedded work runs on C and mainstream RTOSes, so this was the higher-value way to build it.
+  </p>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:14px 28px; margin-top:22px;">
+    <div style="font-size:12.5px;"><b style="color:#c6d3e2; display:block; margin-bottom:2px;">Three concurrent threads</b><span style="color:#6b7d94;">A tamper-monitor thread (high priority), a heartbeat LED thread (low priority), and main, all scheduled by the Zephyr kernel instead of one superloop.</span></div>
+    <div style="font-size:12.5px;"><b style="color:#c6d3e2; display:block; margin-bottom:2px;">Thread synchronization</b><span style="color:#6b7d94;">The tamper and heartbeat threads share one atomic flag. The monitor publishes "tampered"; the LED thread reacts, going from a calm blink to a frantic one.</span></div>
+    <div style="font-size:12.5px;"><b style="color:#c6d3e2; display:block; margin-bottom:2px;">Devicetree hardware description</b><span style="color:#6b7d94;">The reed-switch input is declared in a devicetree overlay, not hardcoded, the portable way Zephyr separates hardware from application code.</span></div>
+    <div style="font-size:12.5px;"><b style="color:#c6d3e2; display:block; margin-bottom:2px;">Custom diagnostic shell</b><span style="color:#6b7d94;">A <code>tamper</code> command over USB serial reports armed/tampered state and dumps the secret bytes, so the wipe can be proven live on the running device.</span></div>
+  </div>
+
+  <div style="border:1px solid #1e2a3a; border-radius:8px; overflow:hidden; background:#0d1420; margin-top:22px;">
+    <img src="zephyr-shell.jpg" alt="Serial shell session: tamper status shows ARMED, tamper secret shows 32 bytes of AB, then after a tamper event the secret dumps as all 00." style="display:block; width:100%; height:auto;">
+    <div style="padding:10px 14px; font-size:12px; color:#6b7d94; border-top:1px solid #1e2a3a;"><b style="color:#c6d3e2;">The wipe, proven live.</b> Over the shell: read the secret (<span style="color:#3fb950;">AB AB AB…</span>), pull the magnet, read again (<span style="color:#3fb950;">00 00 00…</span>). The same result I verified statically in Ghidra, now confirmed interactively on the running device.</div>
+  </div>
+
+  <h2 style="font-size:13px; letter-spacing:2px; text-transform:uppercase; color:#39c5cf; margin:36px 0 10px;">Then I gave it a body</h2>
+  <p style="color:#6b7d94; font-size:13.5px; max-width:660px; margin:0;">
+    A tamper sensor is only real if opening the box triggers it. I designed an enclosure from scratch in FreeCAD and printed it. A magnet sits in the lid, directly over a reed switch soldered to the board. With the lid on, the magnet holds the switch closed and the device is armed. Lift the lid and the magnet moves away, the switch opens, and the firmware zeroizes the secret. The tamper response is now a physical act.
+  </p>
+
+  <div style="display:grid; grid-template-columns:1fr 1fr; gap:16px; align-items:start; margin-top:20px;">
+    <div style="border:1px solid #1e2a3a; border-radius:8px; overflow:hidden; background:#0d1420;">
+      <img src="zephyr-enclosure-closed.jpg" alt="3D-printed enclosure, lid on, with TAMPER PROTECTED embossed on top and three recesses holding lid magnets. A green power LED glows at the seam." style="display:block; width:100%; height:auto;">
+      <div style="padding:10px 14px; font-size:12px; color:#6b7d94; border-top:1px solid #1e2a3a;"><b style="color:#c6d3e2;">Lid on: armed.</b> The magnet in the lid holds the reed switch closed. Embossed on top, in case anyone was wondering.</div>
+    </div>
+    <div style="border:1px solid #1e2a3a; border-radius:8px; overflow:hidden; background:#0d1420;">
+      <img src="zephyr-enclosure-open.jpg" alt="The enclosure open, showing the Raspberry Pi Pico 2 inside with a reed switch soldered directly to its pads." style="display:block; width:100%; height:auto;">
+      <div style="padding:10px 14px; font-size:12px; color:#6b7d94; border-top:1px solid #1e2a3a;"><b style="color:#c6d3e2;">Lid off: wiped.</b> The reed switch, soldered straight to the board, sits under where the lid magnet lands. Remove the lid and the secret is gone.</div>
+    </div>
+  </div>
+
+  <div style="background:rgba(63,185,80,0.08); border:1px solid rgba(63,185,80,0.35); border-left:3px solid #3fb950; border-radius:6px; padding:14px 16px; font-size:13px; color:#c6d3e2; margin:20px 0;">
+    <b style="color:#3fb950;">Two firmwares, one device, from silicon to enclosure.</b> The same tamper-response system, built two ways: bare-metal Rust for full control of the metal, and multi-threaded Zephyr/C for the way real embedded systems are structured. Signed firmware, verified at the binary level, detecting a physical intrusion, wiping a secret, in a case I designed and printed. That is the whole stack, end to end.
+  </div>
+</div>
+
   <footer>
     Built as a learning project · <a href="https://github.com/r221/rp2350-security-lab" target="_blank" rel="noopener">r221/rp2350-security-lab</a><br>
   </footer>
